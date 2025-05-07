@@ -1,0 +1,82 @@
+#ifndef SECP256K1_DEVICE_PARAMS_H
+#define SECP256K1_DEVICE_PARAMS_H
+
+#include "types.h"
+#include "point_types.h"
+
+// Curve parameters in hexadecimal
+// p = FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F
+// n = FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141
+// Gx = 79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798
+// Gy = 483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8
+
+// Device constants for secp256k1 parameters
+__device__ __constant__ uint64_t secp256k1_p[4] = {
+    0xFFFFFFFEFFFFFC2FULL, 0xFFFFFFFFFFFFFFFFULL,
+    0xFFFFFFFFFFFFFFFFULL, 0xFFFFFFFFFFFFFFFFULL
+};
+
+__device__ __constant__ uint64_t secp256k1_n[4] = {
+    0xBFD25E8CD0364141ULL, 0xBAAEDCE6AF48A03BULL,
+    0xFFFFFFFFFFFFFFFEULL, 0xFFFFFFFFFFFFFFFFULL
+};
+
+__device__ __constant__ uint64_t secp256k1_Gx[4] = {
+    0x59F2815B16F81798ULL, 0x2DCE28D959F2815BULL,
+    0xCE870B07029BFCDBULL, 0x79BE667EF9DCBBACULL
+};
+
+__device__ __constant__ uint64_t secp256k1_Gy[4] = {
+    0x9C47D08FFB10D4B8ULL, 0xA68554199C47D08FULL,
+    0x0E1108A8FD17B448ULL, 0x483ADA7726A3C465ULL
+};
+
+// Montgomery arithmetic constants
+__device__ __constant__ uint64_t secp256k1_r2[4] = {
+    0x1000003D1ULL, 0x0ULL, 0x0ULL, 0x0ULL  // R^2 mod p
+};
+
+__device__ __constant__ uint64_t secp256k1_mp[4] = {
+    0xD838091DD2253531ULL, 0ULL, 0ULL, 0ULL  // -p^(-1) mod 2^64
+};
+
+// Endomorphism constants
+__device__ __constant__ uint64_t secp256k1_beta[4] = {
+    0x719501EE9D54C17FULL, 0x7B3F95E5E5919419ULL,
+    0x0D35245D1F1D83EDULL, 0x7D1C7EBACD4D338FULL
+};
+
+__device__ __constant__ uint64_t secp256k1_lambda[4] = {
+    0x5363AD4CC05C30E0ULL, 0xA2C131B2C2C7C80FULL,
+    0x9E8F30E7F14B1359ULL, 0xAC9C52B3D0739F5BULL
+};
+
+// Scalar decomposition constants
+__device__ __constant__ uint64_t secp256k1_b1[4] = {
+    0x3086D221A7D46BCFULL, 0xE0BD4232639B5E0FULL,
+    0xA7179E84F3B9CAC2ULL, 0xBCE6FAADA7179E84ULL
+};
+
+__device__ __constant__ uint64_t secp256k1_b2[4] = {
+    0xCF79B9D8364C2C14ULL, 0x1F42A9DA3EF8F5D1ULL,
+    0x58E86137751D460AULL, 0x43190552C0B7F5D5ULL
+};
+
+__device__ __constant__ uint64_t secp256k1_g1[4] = {
+    0x3D1ULL, 0ULL, 0ULL, 0ULL  // 1/3 mod n
+};
+
+__device__ __constant__ uint64_t secp256k1_g2[4] = {
+    0x7FFFFFFFFFFFFFFF, 0ULL, 0ULL, 0ULL  // -1/2 mod n
+};
+
+// Generator point in Jacobian coordinates (X:Y:1)
+__device__ __constant__ JPoint secp256k1_G = {
+    {0x59F2815B16F81798ULL, 0x2DCE28D959F2815BULL,
+     0xCE870B07029BFCDBULL, 0x79BE667EF9DCBBACULL},  // X = Gx
+    {0x9C47D08FFB10D4B8ULL, 0xA68554199C47D08FULL,
+     0x0E1108A8FD17B448ULL, 0x483ADA7726A3C465ULL},  // Y = Gy
+    {1ULL, 0ULL, 0ULL, 0ULL}  // Z = 1
+};
+
+#endif // SECP256K1_DEVICE_PARAMS_H

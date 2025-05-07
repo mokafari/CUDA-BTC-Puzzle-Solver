@@ -1,0 +1,91 @@
+#include "test_types.h"
+
+// SHA256 test vectors
+const HashTest SHA256_TEST_CASES[] = {
+    {
+        "", // Empty string
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        0
+    },
+    {
+        "abc",
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        3
+    },
+    {
+        "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+        "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+        56
+    }
+};
+
+// RIPEMD160 test vectors
+const HashTest RIPEMD160_TEST_CASES[] = {
+    {
+        "", // Empty string
+        "9c1185a5c5e9fc54612808977ee8f548b2258d31",
+        0
+    },
+    {
+        "abc",
+        "8eb208f7e05d987a9b044a8e98c6b087f15a0bfc",
+        3
+    },
+    {
+        "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+        "12a053384a9c0c88e405a06c27dcf49ada62eb2b",
+        56
+    }
+};
+
+// Point multiplication test vectors
+const PointMultTest POINT_MULT_TEST_CASES[] = {
+    {
+        {0x1ULL, 0x0ULL, 0x0ULL, 0x0ULL},  // k = 1
+        {
+            0x79, 0xBE, 0x66, 0x7E, 0xF9, 0xDC, 0xBB, 0xAC,
+            0x55, 0xA0, 0x62, 0x95, 0xCE, 0x87, 0x0B, 0x07,
+            0x02, 0x9B, 0xFC, 0xDB, 0x2D, 0xCE, 0x28, 0xD9,
+            0x59, 0xF2, 0x81, 0x5B, 0x16, 0xF8, 0x17, 0x98
+        },
+        {
+            0x48, 0x3A, 0xDA, 0x77, 0x26, 0xA3, 0xC4, 0x65,
+            0x5D, 0xA4, 0xFB, 0xFC, 0x0E, 0x11, 0x08, 0xA8,
+            0xFD, 0x17, 0xB4, 0x48, 0xA6, 0x85, 0x54, 0x19,
+            0x9C, 0x47, 0xD0, 0x8F, 0xFB, 0x10, 0xD4, 0xB8
+        }
+    },
+    {
+        {0x2ULL, 0x0ULL, 0x0ULL, 0x0ULL},  // k = 2
+        {
+            0xc6, 0x04, 0x7f, 0x94, 0x41, 0xed, 0x7d, 0x6d,
+            0x3a, 0x4c, 0x55, 0xef, 0x65, 0xd5, 0x38, 0xfe,
+            0x1d, 0xc1, 0xa7, 0xef, 0xc6, 0x58, 0x95, 0x2d,
+            0xe6, 0x8b, 0x07, 0x8e, 0x5b, 0xf0, 0x73, 0x37
+        },
+        {
+            0x2c, 0xe2, 0xeb, 0x69, 0xd0, 0x84, 0x6c, 0xa9,
+            0x26, 0x77, 0xb9, 0x1c, 0xde, 0x3f, 0x3d, 0x37,
+            0x1e, 0xa0, 0x8a, 0x7e, 0x99, 0xd1, 0x1f, 0x94,
+            0xcd, 0x79, 0x5c, 0x8c, 0xee, 0x95, 0xc8, 0x3e
+        }
+    }
+};
+
+// Address generation test vectors
+const AddressTest ADDRESS_TEST_CASES[] = {
+    {
+        {0x1ULL, 0x0ULL, 0x0ULL, 0x0ULL},  // Private key = 1
+        "1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH"
+    },
+    {
+        {0x2ULL, 0x0ULL, 0x0ULL, 0x0ULL},  // Private key = 2
+        "1CUNEBjYrCn2y1SdiUMohaKUi4wpP326Lb"
+    }
+};
+
+// Test case counts
+const int NUM_SHA256_TEST_CASES = sizeof(SHA256_TEST_CASES) / sizeof(HashTest);
+const int NUM_RIPEMD160_TEST_CASES = sizeof(RIPEMD160_TEST_CASES) / sizeof(HashTest);
+const int NUM_POINT_MULT_TEST_CASES = sizeof(POINT_MULT_TEST_CASES) / sizeof(PointMultTest);
+const int NUM_ADDRESS_TEST_CASES = sizeof(ADDRESS_TEST_CASES) / sizeof(AddressTest);

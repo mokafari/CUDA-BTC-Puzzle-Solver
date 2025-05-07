@@ -1,0 +1,70 @@
+# Build directories
+build/
+.cuda_cache/
+
+# Object files
+*.obj
+*.o
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Compiled files
+*.ptx
+*.cubin
+*.fatbin
+
+# IDE files
+.vs/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Project specific
+OLD/
+prompts/ 
