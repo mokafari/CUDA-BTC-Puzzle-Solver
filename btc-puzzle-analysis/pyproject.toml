@@ -1,0 +1,21 @@
+[project]
+name = "btc-puzzle-analysis"
+version = "0.1.0"
+description = "Read-only forensic analysis of the public Bitcoin Puzzle Transaction"
+requires-python = ">=3.11"
+dependencies = [
+    "coincurve==21.0.0",
+    "pytest==9.1.1",
+    "rich==15.0.0",
+    "matplotlib==3.11.1",
+    "requests==2.34.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.setuptools]
+py-modules = ["common", "analyze"]
+packages = ["dataset", "exposure", "keygen", "costmodel"]

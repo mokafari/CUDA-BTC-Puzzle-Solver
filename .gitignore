@@ -67,4 +67,9 @@ $RECYCLE.BIN/
 
 # Project specific
 OLD/
-prompts/ 
+prompts/
+
+# Python virtualenvs / test caches (btc-puzzle-analysis)
+.venv/
+.venv-analysis/
+.pytest_cache/
