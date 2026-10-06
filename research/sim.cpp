@@ -17,10 +17,12 @@ int main(int argc, char** argv) {
   std::vector<double> Ks; int fails = 0;
   for (int t = 0; t < trials; t++) {
     double mean = mm * (mode ? (W / 4 * std::sqrt(2.0 * N / sq)) : (2.0 * N * sq / 4)); if (mean > W / 8) mean = W / 8; if (mean < 1) mean = 1;
+    int DPB = getenv("DPB") ? atoi(getenv("DPB")) : 0; double TS = getenv("TS") ? atof(getenv("TS")) : 1.0, RAMP = getenv("RAMP") ? atof(getenv("RAMP")) : 1.0;
     int JD = getenv("JD") ? atoi(getenv("JD")) : 0, RS = getenv("RS") ? atoi(getenv("RS")) : 0; double TW = getenv("TW") ? atof(getenv("TW")) : 0.5;
     std::vector<i64> js(J); for (auto& j : js) { double u = (rnd() >> 11) * (1.0 / 9007199254740992.0);
       double v = JD == 0 ? 2 * u : JD == 1 ? -std::log(1 - u) : (rnd() & 1) ? 0.2 * 2 * u : 1.8 * 2 * u; j = 1 + (i64)(v * mean); }
     i64 Wi = (i64)W; i64 k = mode ? (i64)(rnd() % Wi) - Wi / 2 : (i64)(rnd() % Wi);
+    std::vector<i64> jt(J); for (int q = 0; q < J; q++) jt[q] = std::max<i64>(1, (i64)(js[q] * TS));
     int M = 2 * N; std::vector<i64> x(M); std::vector<int> wild(M); std::vector<u64> ring((size_t)M * 8, ~0ULL);
     for (int i = 0; i < M; i++) { wild[i] = (i % 100) < (int)(TW * 100) ? 1 : 0;
       if (mode) x[i] = wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) - (i64)(spread * W / 2) : (i64)(rnd() % (u64)(W / 2));
@@ -32,7 +34,8 @@ int main(int argc, char** argv) {
     while (!hit && steps < cap) for (int i = 0; i < M && !hit; i++) {
       i64 c = cls(x[i]); u64 h = mix(c ^ 0x55); int j = h % J;
       if (ringOn) { u64* r = &ring[(size_t)i * 8]; for (int q = 0; q < 8; q++) if (r[q] == (u64)c) { j = (j + 1 + (steps % 5)) % J; break; } r[(steps / M) & 7] = c; }
-      x[i] = rep(x[i] + js[j]); steps++; i64 nc = cls(x[i]); auto r = seen.emplace(nc, wild[i]);
+      i64 jj = (wild[i] ? js[j] : jt[j]); if (RAMP != 1.0 && steps > (u64)(0.6 * sq)) jj = (i64)(jj * RAMP) + 1; x[i] = rep(x[i] + jj); steps++; i64 nc = cls(x[i]); if (DPB && (mix(nc ^ 0x77) & ((1ULL << DPB) - 1))) continue;
+      auto r = seen.emplace(nc, wild[i]);
       if (!r.second && r.first->second != wild[i]) hit = true;
       else if (!r.second && RS) { // same-type merge: respawn at fresh start
         x[i] = rep(mode ? (wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) - (i64)(spread * W / 2) : (i64)(rnd() % (u64)(W / 2)))
