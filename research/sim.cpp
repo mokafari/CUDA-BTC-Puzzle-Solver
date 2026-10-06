@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < M; i++) { wild[i] = (i % 100) < (int)(TW * 100) ? 1 : 0;
       if (mode) x[i] = wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) - (i64)(spread * W / 2) : (i64)(rnd() % (u64)(W / 2));
       else x[i] = wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) : Wi / 2 + (i64)(rnd() % (u64)(spread * W)); }
-    std::unordered_map<i64, char> seen; seen.reserve(1 << 20); u64 idle = 0, steps = 0, cap = (u64)(40 * sq) + 100000; bool hit = false;
+    std::unordered_map<i64, char> seen; seen.reserve(1 << 20); u64 sameRev = 0, escapes = 0, idle = 0, steps = 0, cap = (u64)(40 * sq) + 100000; bool hit = false;
     auto cls = [&](i64 v) { return mode ? (v < 0 ? -v : v) : v; };
     auto rep = [&](i64 v) { if (!mode) return v; i64 c = v < 0 ? -v : v; return (mix(c) & 1) ? c : -c; };
     for (int i = 0; i < M; i++) { x[i] = rep(x[i]); i64 c = cls(x[i]); auto r = seen.emplace(c, wild[i]); if (!r.second && r.first->second != wild[i]) hit = true; }
@@ -37,16 +37,16 @@ int main(int argc, char** argv) {
       if (!wild[i] && tameSteps >= (u64)(TCAP * sq)) { if (++idle > (u64)M * 4) idle = 0; steps += 0; continue; }
       if (!wild[i]) tameSteps++;
       i64 c = cls(x[i]); u64 h = mix(c ^ 0x55); int j = h % J;
-      if (ringOn) { u64* r = &ring[(size_t)i * 8]; for (int q = 0; q < 8; q++) if (r[q] == (u64)c) { j = (j + 1 + (steps % 5)) % J; break; } r[(steps / M) & 7] = c; }
+      if (ringOn) { u64* r = &ring[(size_t)i * 8]; for (int q = 0; q < 8; q++) if (r[q] == (u64)c) { j = (j + 1 + (steps % 5)) % J; escapes++; break; } r[(steps / M) & 7] = c; }
       i64 jj = (wild[i] ? js[j] : jt[j]); if (RAMP != 1.0 && steps > (u64)(0.6 * sq)) jj = (i64)(jj * RAMP) + 1; x[i] = rep(x[i] + jj); steps++; i64 nc = cls(x[i]); if (DPB && (mix(nc ^ 0x77) & ((1ULL << DPB) - 1))) continue;
       auto r = seen.emplace(nc, wild[i]);
       if (!r.second && r.first->second != wild[i]) hit = true;
-      else if (!r.second && RS) { // same-type merge: respawn at fresh start
+      else if (!r.second) { sameRev++; if (RS) { // same-type merge: respawn at fresh start
         x[i] = rep(mode ? (wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) - (i64)(spread * W / 2) : (i64)(rnd() % (u64)(W / 2)))
                         : (wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) : Wi / 2 + (i64)(rnd() % (u64)(spread * W))));
-        i64 c2 = cls(x[i]); auto r2 = seen.emplace(c2, wild[i]); if (!r2.second && r2.first->second != wild[i]) hit = true; }
+        i64 c2 = cls(x[i]); auto r2 = seen.emplace(c2, wild[i]); if (!r2.second && r2.first->second != wild[i]) hit = true; } }
     }
-    if (getenv("DBG")) fprintf(stderr, "steps=%lu uniq=%zu hit=%d k=%ld\n", steps, seen.size(), (int)hit, (long)k);
+    if (hit) { static double sS = 0, sR = 0, sE = 0, sU = 0; static int nn = 0; sS += steps; sR += sameRev; sE += escapes; sU += seen.size(); nn++; if (t == trials - 1) fprintf(stderr, "AVG steps=%.0f (%.2f sqrtW) distinct=%.0f (%.1f%%) same-type revisits=%.0f (%.1f%%) cycle escapes=%.0f (%.2f%%)\n", sS / nn, sS / nn / sq, sU / nn, 100 * sU / sS, sR / nn, 100 * sR / sS, sE / nn, 100 * sE / sS); }
     if (hit) Ks.push_back(steps / sq); else fails++;
   }
   if (Ks.empty()) { printf("mode=%d mm=%.2f all %d trials failed\n", mode, mm, fails); return 0; }
