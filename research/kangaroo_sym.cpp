@@ -94,23 +94,17 @@ struct DP { fe x; i128 d; bool wild; int sg; };
 static std::mutex mu; static std::unordered_map<u64, DP> tbl;
 static std::atomic<bool> done{false}; static std::atomic<u64> steps{0}; static i128 cand[2]; static bool hit = false;
 static i128 W2;  // W/2 offset; found key' = W2 + dt - dw
-static const int J = 64;
+static const int J = 512;
 static std::vector<pt> jp; static std::vector<u128> js;
 
 static void worker(int id, pt Q, int herd, u64 dpmask, int bits) {
   std::mt19937_64 rng(0xC0FFEE + id * 7919);
   std::vector<pt> p(herd); std::vector<i128> d(herd); std::vector<const pt*> q(herd); std::vector<fe> tmp(herd);
-  // starts: random subset sums of 32 random points (batched); wild offset relative to Q
-  int B = 32; std::vector<pt> R(B); std::vector<u128> Rs(B); u128 Wr = (u128)1 << bits;
-  for (int b = 0; b < B; b++) { Rs[b] = (rng() | 1) % (Wr / B) + 1; R[b] = smul(Rs[b]); }
-  std::vector<bool> wild(herd);
-  for (int i = 0; i < herd; i++) { wild[i] = i & 1; p[i] = wild[i] ? Q : G; d[i] = wild[i] ? 0 : 1; }
-  for (int b = 0; b < B; b++) {
-    std::vector<int> idx; for (int i = 0; i < herd; i++) if (rng() & 1) idx.push_back(i);
-    for (size_t o = 0; o < idx.size(); o += 256) { int m = std::min<size_t>(256, idx.size() - o);
-      std::vector<pt> sub(m); std::vector<const pt*> qq(m, &R[b]); for (int k = 0; k < m; k++) sub[k] = p[idx[o + k]];
-      batch_add(sub.data(), qq.data(), m, tmp.data()); for (int k = 0; k < m; k++) { p[idx[o + k]] = sub[k]; d[idx[o + k]] += Rs[b]; } }
-  }
+  // uniform starts: tame in [1, W/2], wild = Q + r*G with r in [0, W/10)
+  u128 Wr = (u128)1 << bits; std::vector<bool> wild(herd);
+  for (int i = 0; i < herd; i++) { wild[i] = i & 1;
+    u128 r = (((u128)rng() << 64) | rng()) % (wild[i] ? Wr / 10 : Wr / 2) + 1; pt rp = smul(r);
+    if (wild[i]) { p[i] = Q; fe di = inv(sub(rp.x, Q.x)); padd(p[i], rp, di); d[i] = (i128)r; } else { p[i] = rp; d[i] = (i128)r; } }
   // symmetry (SOTA-style): walk on classes {P,-P}. State C = sg*(S + d*G), C kept with even y.
   std::vector<int> sg(herd, 1), esc(herd, 0); std::vector<u64> ring((size_t)herd * 8, 0); u64 rpos = 0, local = 0;
   auto norm = [&](int i) { if (p[i].y.v[0] & 1) { fe z = {{0, 0, 0, 0}}; p[i].y = sub(z, p[i].y); sg[i] = -sg[i]; } };
