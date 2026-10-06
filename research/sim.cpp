@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
   std::vector<double> Ks; int fails = 0;
   for (int t = 0; t < trials; t++) {
     double mean = mm * (mode ? (W / 4 * std::sqrt(2.0 * N / sq)) : (2.0 * N * sq / 4)); if (mean > W / 8) mean = W / 8; if (mean < 1) mean = 1;
+    double TCAP = getenv("TCAP") ? atof(getenv("TCAP")) : 1e9, TAB = getenv("TAB") ? atof(getenv("TAB")) : 0; u64 tameSteps = 0;
     int DPB = getenv("DPB") ? atoi(getenv("DPB")) : 0; double TS = getenv("TS") ? atof(getenv("TS")) : 1.0, RAMP = getenv("RAMP") ? atof(getenv("RAMP")) : 1.0;
     int JD = getenv("JD") ? atoi(getenv("JD")) : 0, RS = getenv("RS") ? atoi(getenv("RS")) : 0; double TW = getenv("TW") ? atof(getenv("TW")) : 0.5;
     std::vector<i64> js(J); for (auto& j : js) { double u = (rnd() >> 11) * (1.0 / 9007199254740992.0);
@@ -27,11 +28,14 @@ int main(int argc, char** argv) {
     for (int i = 0; i < M; i++) { wild[i] = (i % 100) < (int)(TW * 100) ? 1 : 0;
       if (mode) x[i] = wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) - (i64)(spread * W / 2) : (i64)(rnd() % (u64)(W / 2));
       else x[i] = wild[i] ? k + (i64)(rnd() % (u64)(spread * W)) : Wi / 2 + (i64)(rnd() % (u64)(spread * W)); }
-    std::unordered_map<i64, char> seen; seen.reserve(1 << 20); u64 steps = 0, cap = (u64)(40 * sq) + 100000; bool hit = false;
+    std::unordered_map<i64, char> seen; seen.reserve(1 << 20); u64 idle = 0, steps = 0, cap = (u64)(40 * sq) + 100000; bool hit = false;
     auto cls = [&](i64 v) { return mode ? (v < 0 ? -v : v) : v; };
     auto rep = [&](i64 v) { if (!mode) return v; i64 c = v < 0 ? -v : v; return (mix(c) & 1) ? c : -c; };
     for (int i = 0; i < M; i++) { x[i] = rep(x[i]); i64 c = cls(x[i]); auto r = seen.emplace(c, wild[i]); if (!r.second && r.first->second != wild[i]) hit = true; }
+    if (TAB > 0) { i64 m = (i64)(TAB * sq); for (i64 c = 0; c < m; c++) seen.emplace(c, 0); steps += m; }
     while (!hit && steps < cap) for (int i = 0; i < M && !hit; i++) {
+      if (!wild[i] && tameSteps >= (u64)(TCAP * sq)) { if (++idle > (u64)M * 4) idle = 0; steps += 0; continue; }
+      if (!wild[i]) tameSteps++;
       i64 c = cls(x[i]); u64 h = mix(c ^ 0x55); int j = h % J;
       if (ringOn) { u64* r = &ring[(size_t)i * 8]; for (int q = 0; q < 8; q++) if (r[q] == (u64)c) { j = (j + 1 + (steps % 5)) % J; break; } r[(steps / M) & 7] = c; }
       i64 jj = (wild[i] ? js[j] : jt[j]); if (RAMP != 1.0 && steps > (u64)(0.6 * sq)) jj = (i64)(jj * RAMP) + 1; x[i] = rep(x[i] + jj); steps++; i64 nc = cls(x[i]); if (DPB && (mix(nc ^ 0x77) & ((1ULL << DPB) - 1))) continue;
